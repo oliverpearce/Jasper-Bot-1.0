@@ -1,7 +1,7 @@
 # =============================================================
-# This project was created on 4/3/2020
+# This project was created on 4/3/2020, last edited 9/22/2021
 # Created by Oliver Pearce AKA Silver Tateyama
-# Using Discord.py 1.3.3 (rewrite) and Python 3.8.1 on Mac
+# Using Discord.py 1.7.3 (rewrite) and Python 3.8.1 on Mac
 # =============================================================
 
 import discord
@@ -11,12 +11,21 @@ import random
 import json
 from itertools import cycle
 import os
+import music
 
 def main():
 
-    client = commands.Bot(command_prefix = "~", owner_id = 314922756628152322)
+    intents = discord.Intents.default()
+    intents.members = True
+
+    client = commands.Bot(command_prefix = "~", owner_id = 314922756628152322, intents=intents)
     status = cycle(['Corona bad >:c', '~helper', '~info'])
     TOKEN = os.environ.get("BOT_TOKEN")
+
+    cogs = [music]
+
+    for i in range(len(cogs)):
+        cogs[i].setup(client)
 
     # =============================================================
     # BASIC SET-UP STUFF
@@ -59,7 +68,7 @@ def main():
         ~ping - writes message on discord when prompted
         '''
         embed = discord.Embed(
-            title = (f'Pong POG! {round(client.latency * 1000)}ms :partying_face:'),
+            title = (f'Pong! {round(client.latency * 1000)}ms :partying_face:'),
             colour = discord.Colour.blurple()
         )
         await ctx.send(embed=embed)
@@ -72,15 +81,15 @@ def main():
         '''
         embed = discord.Embed(
             title = 'Welcome to Jasper Bot 1.0!',
-            description = 'This bot is just for messing around, but made entirely by Silver. \nNamed after my girlfriend too :D',
+            description = 'This bot is just for messing around and made entirely by Silver. \nNamed after my S.O. :D',
             colour = discord.Colour.blue()
         )
 
-        embed.set_footer(text='This is a footnote just bc I can.')
+        embed.set_footer(text='invite link: https://tinyurl.com/jasper-bot')
        # embed.set_image(url='https://cdn.discordapp.com/avatars/314922756628152322/d18c19c2c70c1991e0ebbea5ee5d029b.png')
         embed.set_thumbnail(url='https://i1.sndcdn.com/artworks-000215600087-h47tpo-t500x500.jpg')
         embed.set_author(name='Silver Tateyama',
-        icon_url='https://cdn.discordapp.com/avatars/314922756628152322/969370db4981d0b785e902ae156695c2.png?size=128')
+        icon_url='https://i.imgur.com/vZeGPHq.jpg')
         #https://cdn.discordapp.com/aavatars/314922756628152322/d18c19c2c70c1991e0ebbea5ee5d029b.png
         embed.add_field(name='Need help?', value="Use the ~helper command to learn more!", inline=False)
 
@@ -120,7 +129,7 @@ def main():
         pythonVersion = platform.python_version()
         dpyVersion = discord.__version__
         serverCount = len(client.guilds)
-        memberCount = len(set(ctx.guild.members)) # set removes duplicates
+        memberCount = len(set(client.get_all_members())) # set removes duplicates
         # used to be ctx.guild.members
 
         with open('stats.json', 'r') as f:
@@ -144,10 +153,9 @@ def main():
 
             # bad way to check if owner id, find better way to do it later
             if ctx.message.author.id == client.owner_id:
-                stat_string = f"""\n(~ping) - {stats['ping']}, \n(~hi) - {stats['hi']},\n(~info) - {stats['info']},\n(~echo) - {stats['echo']},\n(~stats) - {stats['stats']},\n(~joke) - {stats['joke']},\n(~profile) - {stats['profile']},\n(~helper) - {stats['helper']},\n(~join/leave) - {stats['join']}, \n(~logout [basically failures]) - {stats['logout']} """
+                stat_string = f"""\n(~ping) - {stats['ping']}, \n(~hi) - {stats['hi']},\n(~info) - {stats['info']},\n(~echo) - {stats['echo']},\n(~stats) - {stats['stats']},\n(~joke) - {stats['joke']},\n(~profile) - {stats['profile']},\n(~helper) - {stats['helper']},\n(~join/leave) - {stats['join']+stats['leave']}, \n(~8ball) - {stats['8ball']}, \n(~play) - {stats['play']}, \n(~pause) - {stats['pause']}, \n(~resume) - {stats['resume']}, \n(~logout [basically failures]) - {stats['logout']} """
             else:
-                stat_string = f"""\n(~ping) - {stats['ping']}, \n(~hi) - {stats['hi']},\n(~info) - {stats['info']},\n(~echo) - {stats['echo']},\n(~stats) - {stats['stats']},\n(~joke) - {stats['joke']},\n(~profile) - {stats['profile']},\n(~helper) - {stats['helper']},\n(~join/leave) - {stats['join']} """
-
+                stat_string = f"""\n(~ping) - {stats['ping']}, \n(~hi) - {stats['hi']},\n(~info) - {stats['info']},\n(~echo) - {stats['echo']},\n(~stats) - {stats['stats']},\n(~joke) - {stats['joke']},\n(~profile) - {stats['profile']},\n(~helper) - {stats['helper']},\n(~join/leave) - {stats['join']+stats['leave']}, \n(~8ball) - {stats['8ball']}, \n(~play) - {stats['play']}, \n(~pause) - {stats['pause']}, \n(~resume) - {stats['resume']} """
 
             embed = discord.Embed(
                 title = ':scream: Look at these all these commands!',
@@ -158,11 +166,11 @@ def main():
             await ctx.send(embed=embed)
 
 
-    @client.command(aliases=['destroy', 'stop', 'quit', 'terminate', 'kill'])
+    @client.command(aliases=['destroy', 'stop', 'quit', 'terminate', 'kill', 'murk', 'murder', 'stab'])
     @commands.is_owner()
     async def logout(ctx):
         '''
-        ~logout/quit/destroy/stop - severs connections with discord
+        ~logout/quit/destroy/stop/terminate/etc. - severs connections with discord
         '''
         embed = discord.Embed(
             title = (f"Hey {ctx.author.name}, I am logging off now. :wave:"),
@@ -170,7 +178,8 @@ def main():
         )
 
         await ctx.send(embed=embed)
-        await client.logout()
+        # await client.logout()
+        await client.close()
         await update_data('logout')
         print('bot has successfully logged out')
 
@@ -235,6 +244,21 @@ def main():
         await ctx.send(embed=embed)
         await update_data('profile')
 
+    @client.command(aliases=['8ball'])
+    async def magic8(ctx):
+        ans = ['It is certain', 'It is decidedly so', 'Without a doubt', 'Yes – definitely', 'You may rely on it', 'As I see it, yes', 'Most likely', 'Outlook good', 'Signs point to yes', 'Reply hazy', 'Try again', 'Ask again later', 'Better not tell you now', 'Cannot predict now', 'Concentrate and ask again', 'Dont count on it', 'My reply is no', 'My sources say no', 'Outlook not so good', 'Very doubtful']
+
+        rand = random.choice(ans)
+
+        embed = discord.Embed(
+          colour = discord.Colour.blurple(),
+          title = f"""**:8ball:** says: ```{rand}.```""",
+          #description = f'Question posed: {ctx}'
+        )
+
+        await ctx.send(embed=embed) 
+        await update_data('8ball')
+
     async def update_data(cmd):
         '''
         update_data - updates stats.json file when command is used
@@ -265,15 +289,23 @@ def main():
         icon_url='https://i1.sndcdn.com/artworks-000215600087-h47tpo-t500x500.jpg')
 
         #embed.set_author(name='Helper for your wildest dreams :)')
+        embed.add_field(name='\u200b', value='-------------------', inline=False)
+        embed.add_field(name='_*TEXT COMMANDS*_   :keyboard:', value='\u200b', inline=False)
         embed.add_field(name='~ping', value="Returns 'Pong POG! + ping", inline = False)
-        embed.add_field(name='~join', value="Joins user's voice channel", inline = False)
-        embed.add_field(name='~leave', value="Leaves user's voice channel", inline = False)
         embed.add_field(name='~hi', value="Says hi to user when prompted", inline = False)
         embed.add_field(name='~echo', value="Echoes message provided by user", inline = False)
         embed.add_field(name='~stats', value="Displays bot's overall statistics", inline = False)
         embed.add_field(name='~cmdstats', value="Displays bot's global command usage", inline = False)
         embed.add_field(name='~joke', value="Displays a random message", inline = False)
         embed.add_field(name='~profile', value="Displays basic user information", inline = False)
+
+        embed.add_field(name='\u200b', value='-------------------', inline=False)
+        embed.add_field(name='_*AUDIO COMMANDS*_   :loud_sound:', value='\u200b', inline=False)
+        embed.add_field(name='~join', value='Joins the voice channel of user', inline=False)
+        embed.add_field(name='~disconnect', value='Disconnects bot from voice channel of user', inline=False)
+        embed.add_field(name='~play', value='Plays a song from only a youtube link', inline=False)
+        embed.add_field(name='~pause', value='Pauses the music currently playing', inline=False)
+        embed.add_field(name='~resume', value='Resumed music after being paused', inline=False)
 
         await ctx.send(embed=embed)
         await update_data('helper')
@@ -282,24 +314,7 @@ def main():
     # VOICE CHANNEL STUFF - COMMANDS
     # =============================================================
 
-    @client.command()
-    async def join(ctx):
-        '''
-        ~join - joins user's voice channel
-        '''
-        if ctx.message.author.voice:
-            channel = ctx.message.author.voice.channel
-            await channel.connect(timeout=60.0)
-            await update_data('join')
-
-    @client.command()
-    async def leave(ctx):
-        '''
-        ~leave - leaves user's voice channel
-        '''
-        server = ctx.message.guild.voice_client
-        await server.disconnect()
-        await update_data('leave')
+    # MOVED TO MUSIC.PY
 
     client.run(TOKEN)
 
